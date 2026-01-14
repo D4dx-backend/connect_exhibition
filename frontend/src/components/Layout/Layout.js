@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   FaHome, FaStore, FaQuestionCircle, FaTrophy, 
-  FaCommentAlt, FaBell, FaUser, FaBars, FaTimes, FaSignOutAlt, FaUserShield, FaBookmark
+  FaCommentAlt, FaBell, FaUser, FaBars, FaTimes, FaSignOutAlt, FaUserShield, FaBookmark, FaCalendarAlt
 } from 'react-icons/fa';
 import logo from '../../assets/connecta-logo.svg';
 
@@ -24,6 +24,7 @@ const Layout = () => {
     { path: '/home', label: 'Home', icon: <FaHome /> },
     { path: '/booths', label: 'Booths', icon: <FaStore /> },
     { path: '/quiz', label: 'Quiz', icon: <FaQuestionCircle /> },
+    { path: '/programs', label: 'Programs', icon: <FaCalendarAlt /> },
     { path: '/leaderboard', label: 'Leaderboard', icon: <FaTrophy /> },
     { path: '/feedback', label: 'Feedback', icon: <FaCommentAlt /> },
     { path: '/notifications', label: 'Info', icon: <FaBell /> },
