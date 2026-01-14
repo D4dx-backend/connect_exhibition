@@ -49,19 +49,18 @@ const Home = () => {
       iconBg: 'bg-blue-500'
     },
     {
-      icon: <FaBookmark className="text-xl sm:text-2xl" />,
-      title: 'My Bookmarks',
-      description: 'View and manage bookmarks',
-      link: '/profile',
-      iconBg: 'bg-purple-500',
-      requireAuth: true
-    },
-    {
       icon: <FaQuestionCircle className="text-xl sm:text-2xl" />,
       title: 'Quiz Competition',
       description: 'Participate in daily quizzes',
       link: '/quiz',
       iconBg: 'bg-pink-500'
+    },
+    {
+      icon: <FaCalendarAlt className="text-xl sm:text-2xl" />,
+      title: 'Programs',
+      description: 'View all scheduled events',
+      link: '/programs',
+      iconBg: 'bg-indigo-500'
     },
     {
       icon: <FaTrophy className="text-xl sm:text-2xl" />,
@@ -78,18 +77,19 @@ const Home = () => {
       iconBg: 'bg-green-500'
     },
     {
+      icon: <FaBookmark className="text-xl sm:text-2xl" />,
+      title: 'My Bookmarks',
+      description: 'View and manage bookmarks',
+      link: '/profile',
+      iconBg: 'bg-purple-500',
+      requireAuth: true
+    },
+    {
       icon: <FaBell className="text-xl sm:text-2xl" />,
       title: 'Announcements',
       description: 'Stay updated with latest info',
       link: '/notifications',
       iconBg: 'bg-teal-500'
-    },
-    {
-      icon: <FaCalendarAlt className="text-xl sm:text-2xl" />,
-      title: 'Programs',
-      description: 'View all scheduled events',
-      link: '/programs',
-      iconBg: 'bg-indigo-500'
     }
   ];
 
