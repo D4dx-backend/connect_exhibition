@@ -3,7 +3,7 @@
 // for the list of available Workbox modules, or add any other
 // code you'd like.
 
-const CACHE_NAME = 'connectplus-v1';
+const CACHE_NAME = 'connecta-v1';
 const urlsToCache = [
   '/',
   '/static/css/main.css',

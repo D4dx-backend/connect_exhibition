@@ -12,6 +12,16 @@ root.render(
 );
 
 // Register service worker for PWA
-// Temporarily disabled to avoid caching issues during development
-// serviceWorkerRegistration.register();
-serviceWorkerRegistration.unregister();
+serviceWorkerRegistration.register({
+  onUpdate: (registration) => {
+    const waitingServiceWorker = registration.waiting;
+    if (waitingServiceWorker) {
+      waitingServiceWorker.addEventListener('statechange', (event) => {
+        if (event.target.state === 'activated') {
+          window.location.reload();
+        }
+      });
+      waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+  },
+});
