@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { feedbackAPI } from '../../services/apiServices';
 import { toast } from 'react-toastify';
-import { FaStar, FaUser, FaCalendar, FaChartBar, FaDownload } from 'react-icons/fa';
+import { FaStar, FaCalendar, FaChartBar, FaDownload } from 'react-icons/fa';
 
 const AdminFeedback = () => {
   const [feedback, setFeedback] = useState([]);
@@ -9,13 +9,7 @@ const AdminFeedback = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    fetchFeedback();
-    fetchStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
-
-  const fetchFeedback = async () => {
+  const fetchFeedback = useCallback(async () => {
     setLoading(true);
     try {
       const response = await feedbackAPI.getAll({ status: filter !== 'all' ? filter : undefined });
@@ -28,9 +22,9 @@ const AdminFeedback = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await feedbackAPI.getStats();
       setStats(response.data.data);
@@ -38,7 +32,12 @@ const AdminFeedback = () => {
       console.error('Failed to fetch stats');
       setStats(null);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchFeedback();
+    fetchStats();
+  }, [fetchFeedback, fetchStats]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {

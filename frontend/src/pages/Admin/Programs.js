@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { programAPI } from '../../services/apiServices';
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaCalendar, FaClock, FaUser } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCalendar, FaClock } from 'react-icons/fa';
 
 const AdminPrograms = () => {
   const [programs, setPrograms] = useState([]);
@@ -19,11 +19,7 @@ const AdminPrograms = () => {
   });
   const [speakerForm, setSpeakerForm] = useState({ name: '', designation: '', photo: '' });
 
-  useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async () => {
     try {
       const response = await programAPI.getAllAdmin();
       setPrograms(response.data.data || []);
@@ -32,7 +28,11 @@ const AdminPrograms = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchPrograms();
+  }, [fetchPrograms]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
