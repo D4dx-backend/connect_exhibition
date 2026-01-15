@@ -238,20 +238,22 @@ exports.uploadMedia = async (req, res, next) => {
     }
 
     const uploadedFiles = {};
+    const spacesUrl = `https://${process.env.SPACES_BUCKET_NAME}.${process.env.SPACES_ENDPOINT}`;
 
     if (req.files.logo) {
-      uploadedFiles.logo = `/uploads/images/${req.files.logo[0].filename}`;
+      uploadedFiles.logo = `${spacesUrl}/${req.files.logo[0].key}`;
     }
     if (req.files.audio) {
-      uploadedFiles.audioFile = `/uploads/audio/${req.files.audio[0].filename}`;
+      uploadedFiles.audioFile = `${spacesUrl}/${req.files.audio[0].key}`;
     }
     if (req.files.video) {
-      uploadedFiles.videoFile = `/uploads/video/${req.files.video[0].filename}`;
+      uploadedFiles.videoFile = `${spacesUrl}/${req.files.video[0].key}`;
     }
 
     res.status(200).json({
       success: true,
-      data: uploadedFiles
+      data: uploadedFiles,
+      message: 'Files uploaded successfully to DigitalOcean Spaces'
     });
   } catch (error) {
     next(error);

@@ -49,30 +49,45 @@ const AdminBooths = () => {
     e.preventDefault();
     
     try {
-      const data = new FormData();
-      
-      // Append basic fields
-      data.append('name', formData.name);
-      data.append('title', formData.title);
-      data.append('description', formData.description);
-      data.append('metadata', JSON.stringify(formData.metadata));
-      data.append('isPublished', formData.isPublished);
-      
-      // Append resources
-      if (resources.length > 0) {
-        data.append('resources', JSON.stringify(resources));
+      let logoUrl = editingBooth?.logo || '';
+      let audioFileUrl = audioUrl;
+      let videoFileUrl = videoUrl;
+
+      // Upload files to DigitalOcean Spaces if provided
+      if (logoFile || audioUrl || videoUrl) {
+        const uploadFormData = new FormData();
+        if (logoFile) uploadFormData.append('logo', logoFile);
+        
+        try {
+          const uploadResponse = await boothAPI.uploadMedia(uploadFormData);
+          if (uploadResponse.data.data.logo) {
+            logoUrl = uploadResponse.data.data.logo;
+            toast.success('Logo uploaded successfully');
+          }
+        } catch (uploadError) {
+          toast.error('Failed to upload files: ' + (uploadError.response?.data?.message || uploadError.message));
+          return;
+        }
       }
-      
-      // Append files and URLs
-      if (logoFile) data.append('logo', logoFile);
-      if (audioUrl) data.append('audioUrl', audioUrl);
-      if (videoUrl) data.append('videoUrl', videoUrl);
+
+      // Prepare booth data
+      const boothData = {
+        name: formData.name,
+        title: formData.title,
+        description: formData.description,
+        metadata: formData.metadata,
+        isPublished: formData.isPublished,
+        logo: logoUrl,
+        audioFile: audioFileUrl,
+        videoFile: videoFileUrl,
+        resources: resources
+      };
       
       if (editingBooth) {
-        await boothAPI.update(editingBooth._id, data);
+        await boothAPI.update(editingBooth._id, boothData);
         toast.success('Booth updated successfully');
       } else {
-        await boothAPI.create(data);
+        await boothAPI.create(boothData);
         toast.success('Booth created successfully');
       }
       

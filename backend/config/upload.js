@@ -1,35 +1,38 @@
 const multer = require('multer');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { Upload } = require('@aws-sdk/lib-storage');
 const path = require('path');
-const fs = require('fs');
+const { Readable } = require('stream');
 
-// Create uploads directory if it doesn't exist
-const uploadDir = './uploads';
-['images', 'audio', 'video', 'documents'].forEach(dir => {
-  const fullPath = path.join(uploadDir, dir);
-  if (!fs.existsSync(fullPath)) {
-    fs.mkdirSync(fullPath, { recursive: true });
-  }
-});
+// Validate environment variables
+const requiredEnvVars = [
+  'SPACES_ACCESS_KEY_ID',
+  'SPACES_SECRET_ACCESS_KEY',
+  'SPACES_BUCKET_NAME',
+  'SPACES_ENDPOINT',
+  'REGION'
+];
 
-// Storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    let folder = 'images';
-    
-    if (file.mimetype.startsWith('audio/')) {
-      folder = 'audio';
-    } else if (file.mimetype.startsWith('video/')) {
-      folder = 'video';
-    } else if (file.mimetype === 'application/pdf') {
-      folder = 'documents';
-    }
-    
-    cb(null, path.join(uploadDir, folder));
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+  process.exit(1);
+}
+
+console.log('✅ DigitalOcean Spaces Configuration:');
+console.log('   Region:', process.env.REGION);
+console.log('   Bucket:', process.env.SPACES_BUCKET_NAME);
+console.log('   Endpoint:', `https://${process.env.SPACES_ENDPOINT}`);
+
+// Configure DigitalOcean Spaces (S3-compatible) using AWS SDK v3
+const s3Client = new S3Client({
+  endpoint: `https://${process.env.SPACES_ENDPOINT}`,
+  region: process.env.REGION,
+  credentials: {
+    accessKeyId: process.env.SPACES_ACCESS_KEY_ID,
+    secretAccessKey: process.env.SPACES_SECRET_ACCESS_KEY
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+  forcePathStyle: false
 });
 
 // File filter
@@ -56,11 +59,81 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Custom storage engine for AWS SDK v3
+class S3Storage {
+  constructor(opts) {
+    this.s3Client = opts.s3Client;
+    this.bucket = opts.bucket;
+    this.getKey = opts.key;
+    this.getContentType = opts.contentType;
+  }
+
+  _handleFile(req, file, cb) {
+    this.getKey(req, file, async (err, key) => {
+      if (err) return cb(err);
+
+      const contentType = this.getContentType ? this.getContentType(req, file, cb) : file.mimetype;
+      
+      try {
+        const upload = new Upload({
+          client: this.s3Client,
+          params: {
+            Bucket: this.bucket,
+            Key: key,
+            Body: file.stream,
+            ContentType: contentType,
+            ACL: 'public-read'
+          }
+        });
+
+        const result = await upload.done();
+        
+        cb(null, {
+          key: key,
+          location: `https://${this.bucket}.${process.env.SPACES_ENDPOINT}/${key}`,
+          bucket: this.bucket,
+          etag: result.ETag
+        });
+      } catch (error) {
+        cb(error);
+      }
+    });
+  }
+
+  _removeFile(req, file, cb) {
+    cb(null);
+  }
+}
+
+// Storage configuration for DigitalOcean Spaces
+const storage = new S3Storage({
+  s3Client: s3Client,
+  bucket: process.env.SPACES_BUCKET_NAME,
+  key: function (req, file, cb) {
+    let folder = 'images';
+    
+    if (file.mimetype.startsWith('audio/')) {
+      folder = 'audio';
+    } else if (file.mimetype.startsWith('video/')) {
+      folder = 'video';
+    } else if (file.mimetype === 'application/pdf') {
+      folder = 'documents';
+    }
+    
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const filename = `connecta/${folder}/${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`;
+    cb(null, filename);
+  },
+  contentType: function (req, file, cb) {
+    return file.mimetype;
+  }
+});
+
 // Multer configuration
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 104857600 // 100MB default
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760 // 10MB default
   },
   fileFilter: fileFilter
 });
