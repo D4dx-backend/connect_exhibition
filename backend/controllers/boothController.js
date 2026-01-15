@@ -238,7 +238,13 @@ exports.uploadMedia = async (req, res, next) => {
     }
 
     const uploadedFiles = {};
-    const spacesUrl = `https://${process.env.SPACES_BUCKET_NAME}.${process.env.SPACES_ENDPOINT}`;
+    const normalizeEndpoint = (value) =>
+      value.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    const spacesEndpoint = normalizeEndpoint(process.env.DO_SPACES_ENDPOINT);
+    const spacesCdnEndpoint = process.env.DO_SPACES_CDN_ENDPOINT
+      ? normalizeEndpoint(process.env.DO_SPACES_CDN_ENDPOINT)
+      : spacesEndpoint;
+    const spacesUrl = `https://${process.env.DO_SPACES_BUCKET}.${spacesCdnEndpoint}`;
 
     if (req.files.logo) {
       uploadedFiles.logo = `${spacesUrl}/${req.files.logo[0].key}`;

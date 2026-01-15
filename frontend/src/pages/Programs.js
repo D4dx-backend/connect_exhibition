@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { programAPI } from '../services/apiServices';
+import { normalizeMediaUrl } from '../utils/media';
 import { toast } from 'react-toastify';
 import { FaClock, FaUser, FaFilter } from 'react-icons/fa';
 
@@ -175,11 +176,13 @@ const Programs = () => {
                               Speakers
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {program.speakers.map((speaker, index) => (
+                              {program.speakers.map((speaker, index) => {
+                                const photoUrl = normalizeMediaUrl(speaker.photo);
+                                return (
                                 <div key={index} className="flex items-center space-x-3 bg-gray-50 rounded-lg p-3">
-                                  {speaker.photo ? (
+                                  {photoUrl ? (
                                     <img
-                                      src={speaker.photo}
+                                      src={photoUrl}
                                       alt={speaker.name}
                                       className="w-12 h-12 rounded-full object-cover"
                                     />
@@ -193,7 +196,8 @@ const Programs = () => {
                                     <div className="text-sm text-gray-600">{speaker.designation}</div>
                                   </div>
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         )}

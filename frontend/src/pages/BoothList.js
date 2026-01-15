@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { boothAPI } from '../services/apiServices';
+import { normalizeMediaUrl } from '../utils/media';
 import { FaSearch, FaBookmark } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
@@ -68,16 +69,18 @@ const BoothList = () => {
 
       {/* Booths Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {booths.map((booth) => (
+        {booths.map((booth) => {
+          const logoUrl = normalizeMediaUrl(booth.logo);
+          return (
           <Link
             key={booth._id}
             to={`/booths/${booth._id}`}
             className="bg-white rounded-xl shadow-md hover:shadow-xl transition transform hover:-translate-y-1 overflow-hidden"
           >
             <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              {booth.logo ? (
+              {logoUrl ? (
                 <img
-                  src={booth.logo}
+                  src={logoUrl}
                   alt={booth.name}
                   className="w-full h-full object-cover"
                 />
@@ -96,7 +99,8 @@ const BoothList = () => {
               </div>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       {booths.length === 0 && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { boothAPI } from '../services/apiServices';
+import { normalizeMediaUrl } from '../utils/media';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import parse, { domToReact } from 'html-react-parser';
@@ -383,6 +384,10 @@ const BoothDetail = () => {
     );
   }
 
+  const logoUrl = normalizeMediaUrl(booth?.logo);
+  const audioUrl = normalizeMediaUrl(booth?.audioFile);
+  const videoUrl = normalizeMediaUrl(booth?.videoFile);
+
   return (
     <div className="fade-in max-w-4xl mx-auto">
       {/* Header with Navigation */}
@@ -455,9 +460,9 @@ const BoothDetail = () => {
       {/* Booth Header */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
         <div className="h-64 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center p-8">
-          {booth.logo ? (
+          {logoUrl ? (
             <img
-              src={booth.logo}
+              src={logoUrl}
               alt={booth.name}
               className="max-h-full max-w-full object-contain"
             />
@@ -492,7 +497,7 @@ const BoothDetail = () => {
       </div>
 
       {/* Audio Section */}
-      {booth.audioFile && (
+      {audioUrl && (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Audio</h3>
           <div className="flex items-center space-x-4">
@@ -505,7 +510,7 @@ const BoothDetail = () => {
             <div className="flex-1">
               <audio
                 ref={audioRef}
-                src={booth.audioFile}
+                src={audioUrl}
                 onEnded={() => setAudioPlaying(false)}
                 className="w-full"
                 controls
@@ -516,15 +521,15 @@ const BoothDetail = () => {
       )}
 
       {/* Video Section */}
-      {booth.videoFile && (
+      {videoUrl && (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Video</h3>
           <video
             controls
             className="w-full rounded-lg"
-            poster={booth.logo}
+            poster={logoUrl || undefined}
           >
-            <source src={booth.videoFile} type="video/mp4" />
+            <source src={videoUrl} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
