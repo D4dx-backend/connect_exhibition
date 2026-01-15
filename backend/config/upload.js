@@ -6,10 +6,10 @@ const { Readable } = require('stream');
 
 // Validate environment variables
 const requiredEnvVars = [
-  'SPACES_ACCESS_KEY_ID',
-  'SPACES_SECRET_ACCESS_KEY',
-  'SPACES_BUCKET_NAME',
-  'SPACES_ENDPOINT',
+  'DO_SPACES_KEY',
+  'DO_SPACES_SECRET',
+  'DO_SPACES_BUCKET',
+  'DO_SPACES_ENDPOINT',
   'REGION'
 ];
 
@@ -19,18 +19,31 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
+const normalizeEndpoint = (value) =>
+  value.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+
+const spacesEndpoint = normalizeEndpoint(process.env.DO_SPACES_ENDPOINT);
+const spacesCdnEndpoint = process.env.DO_SPACES_CDN_ENDPOINT
+  ? normalizeEndpoint(process.env.DO_SPACES_CDN_ENDPOINT)
+  : spacesEndpoint;
+const spacesBucket = process.env.DO_SPACES_BUCKET;
+const baseFolder = (process.env.DO_SPACES_FOLDER || 'connecta')
+  .replace(/^\/+/, '')
+  .replace(/\/+$/, '');
+
 console.log('✅ DigitalOcean Spaces Configuration:');
 console.log('   Region:', process.env.REGION);
-console.log('   Bucket:', process.env.SPACES_BUCKET_NAME);
-console.log('   Endpoint:', `https://${process.env.SPACES_ENDPOINT}`);
+console.log('   Bucket:', spacesBucket);
+console.log('   Endpoint:', `https://${spacesEndpoint}`);
+console.log('   CDN Endpoint:', `https://${spacesCdnEndpoint}`);
 
 // Configure DigitalOcean Spaces (S3-compatible) using AWS SDK v3
 const s3Client = new S3Client({
-  endpoint: `https://${process.env.SPACES_ENDPOINT}`,
+  endpoint: `https://${spacesEndpoint}`,
   region: process.env.REGION,
   credentials: {
-    accessKeyId: process.env.SPACES_ACCESS_KEY_ID,
-    secretAccessKey: process.env.SPACES_SECRET_ACCESS_KEY
+    accessKeyId: process.env.DO_SPACES_KEY,
+    secretAccessKey: process.env.DO_SPACES_SECRET
   },
   forcePathStyle: false
 });
@@ -90,7 +103,7 @@ class S3Storage {
         
         cb(null, {
           key: key,
-          location: `https://${this.bucket}.${process.env.SPACES_ENDPOINT}/${key}`,
+          location: `https://${this.bucket}.${spacesCdnEndpoint}/${key}`,
           bucket: this.bucket,
           etag: result.ETag
         });
@@ -108,7 +121,7 @@ class S3Storage {
 // Storage configuration for DigitalOcean Spaces
 const storage = new S3Storage({
   s3Client: s3Client,
-  bucket: process.env.SPACES_BUCKET_NAME,
+  bucket: spacesBucket,
   key: function (req, file, cb) {
     let folder = 'images';
     
@@ -121,7 +134,7 @@ const storage = new S3Storage({
     }
     
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = `connecta/${folder}/${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`;
+    const filename = `${baseFolder}/${folder}/${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`;
     cb(null, filename);
   },
   contentType: function (req, file, cb) {

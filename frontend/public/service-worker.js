@@ -24,6 +24,11 @@ self.addEventListener('install', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

@@ -27,7 +27,7 @@ const AdminBooths = () => {
   const [audioUrl, setAudioUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [resources, setResources] = useState([]);
-  const [newResource, setNewResource] = useState({ label: '', url: '', type: 'pdf' });
+  const [newResource, setNewResource] = useState({ label: '', url: '', type: 'document' });
   const [isHtmlMode, setIsHtmlMode] = useState(false);
 
   useEffect(() => {
@@ -71,7 +71,12 @@ const AdminBooths = () => {
       }
 
       // Prepare booth data
-      const boothData = {
+    const normalizedResources = resources.map((resource) => ({
+      ...resource,
+      type: resource.type === 'pdf' ? 'document' : resource.type
+    }));
+
+    const boothData = {
         name: formData.name,
         title: formData.title,
         description: formData.description,
@@ -80,7 +85,7 @@ const AdminBooths = () => {
         logo: logoUrl,
         audioFile: audioFileUrl,
         videoFile: videoFileUrl,
-        resources: resources
+      resources: normalizedResources
       };
       
       if (editingBooth) {
@@ -139,7 +144,7 @@ const AdminBooths = () => {
       return;
     }
     setResources([...resources, { ...newResource }]);
-    setNewResource({ label: '', url: '', type: 'pdf' });
+    setNewResource({ label: '', url: '', type: 'document' });
   };
 
   const removeResource = (index) => {
@@ -426,10 +431,10 @@ const AdminBooths = () => {
                     onChange={(e) => setNewResource({...newResource, type: e.target.value})}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                   >
-                    <option value="pdf">PDF</option>
+                    <option value="document">Document</option>
                     <option value="link">Link</option>
                     <option value="video">Video</option>
-                    <option value="document">Document</option>
+                    <option value="other">Other</option>
                   </select>
                   <button
                     type="button"
