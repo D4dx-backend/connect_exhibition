@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { boothAPI } from '../services/apiServices';
 import { useAuth } from '../context/AuthContext';
@@ -22,27 +22,7 @@ const BoothDetail = () => {
   const [audioPlaying, setAudioPlaying] = useState(false);
   const audioRef = React.useRef(null);
 
-  useEffect(() => {
-    fetchAllBooths();
-  }, []);
-
-  useEffect(() => {
-    if (allBooths.length > 0) {
-      fetchBoothDetail();
-      if (isAuthenticated) {
-        markAsVisited();
-      }
-    }
-  }, [id, allBooths]);
-
-  useEffect(() => {
-    if (booth && user) {
-      setIsBookmarked(user.bookmarkedBooths?.some(b => b._id === booth._id || b === booth._id));
-      setIsVisited(user.visitedBooths?.some(v => v.booth?._id === booth._id || v.booth === booth._id));
-    }
-  }, [booth, user]);
-
-  const fetchAllBooths = async () => {
+  const fetchAllBooths = useCallback(async () => {
     try {
       const response = await boothAPI.getAll();
       const booths = response.data.data || [];
@@ -50,9 +30,9 @@ const BoothDetail = () => {
     } catch (error) {
       console.error('Failed to load booths list');
     }
-  };
+  }, []);
 
-  const fetchBoothDetail = async () => {
+  const fetchBoothDetail = useCallback(async () => {
     setLoading(true);
     try {
       const response = await boothAPI.getById(id);
@@ -69,15 +49,35 @@ const BoothDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [allBooths, id, navigate]);
 
-  const markAsVisited = async () => {
+  const markAsVisited = useCallback(async () => {
     try {
       await boothAPI.markAsVisited(id);
     } catch (error) {
       console.error('Failed to mark as visited');
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchAllBooths();
+  }, [fetchAllBooths]);
+
+  useEffect(() => {
+    if (allBooths.length > 0) {
+      fetchBoothDetail();
+      if (isAuthenticated) {
+        markAsVisited();
+      }
+    }
+  }, [fetchBoothDetail, isAuthenticated, markAsVisited]);
+
+  useEffect(() => {
+    if (booth && user) {
+      setIsBookmarked(user.bookmarkedBooths?.some(b => b._id === booth._id || b === booth._id));
+      setIsVisited(user.visitedBooths?.some(v => v.booth?._id === booth._id || v.booth === booth._id));
+    }
+  }, [booth, user]);
 
   const handleBookmark = async () => {
     if (!isAuthenticated) {

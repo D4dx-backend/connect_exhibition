@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { notificationAPI } from '../services/apiServices';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -10,14 +10,7 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    fetchNotifications();
-    if (isAuthenticated) {
-      fetchUnreadCount();
-    }
-  }, []);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const response = await notificationAPI.getAll();
       setNotifications(response.data.data);
@@ -26,16 +19,23 @@ const Notifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await notificationAPI.getUnreadCount();
       setUnreadCount(response.data.count);
     } catch (error) {
       console.error('Failed to fetch unread count');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    if (isAuthenticated) {
+      fetchUnreadCount();
+    }
+  }, [fetchNotifications, fetchUnreadCount, isAuthenticated]);
 
   const handleMarkAsRead = async (notificationId) => {
     if (!isAuthenticated) return;

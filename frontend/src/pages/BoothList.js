@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { boothAPI } from '../services/apiServices';
 import { FaSearch, FaBookmark } from 'react-icons/fa';
@@ -9,11 +9,7 @@ const BoothList = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchBooths();
-  }, []);
-
-  const fetchBooths = async () => {
+  const fetchBooths = useCallback(async () => {
     try {
       const response = await boothAPI.getAll({ search });
       setBooths(response.data.data);
@@ -22,7 +18,11 @@ const BoothList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
+
+  useEffect(() => {
+    fetchBooths();
+  }, [fetchBooths]);
 
   const handleSearch = (e) => {
     e.preventDefault();

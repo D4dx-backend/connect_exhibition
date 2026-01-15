@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { quizAPI, quizConfigAPI } from '../services/apiServices';
 import { toast } from 'react-toastify';
@@ -10,34 +10,20 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [resultsPublished, setResultsPublished] = useState(false);
-  const [quizConfig, setQuizConfig] = useState(null);
   const result = location.state?.result;
 
-  useEffect(() => {
-    fetchQuizConfig();
-  }, []);
-
-  useEffect(() => {
-    if (resultsPublished) {
-      fetchLeaderboard();
-    } else {
-      setLoading(false);
-    }
-  }, [selectedDate, resultsPublished]);
-
-  const fetchQuizConfig = async () => {
+  const fetchQuizConfig = useCallback(async () => {
     try {
       const response = await quizConfigAPI.getActive();
       const config = response.data.data;
-      setQuizConfig(config);
       setResultsPublished(config?.resultsPublished || false);
     } catch (error) {
       console.error('Failed to load quiz config');
       setResultsPublished(false);
     }
-  };
+  }, []);
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       const response = await quizAPI.getLeaderboard(selectedDate);
       setLeaderboard(response.data.data);
@@ -46,7 +32,19 @@ const Leaderboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchQuizConfig();
+  }, [fetchQuizConfig]);
+
+  useEffect(() => {
+    if (resultsPublished) {
+      fetchLeaderboard();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchLeaderboard, resultsPublished, selectedDate]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

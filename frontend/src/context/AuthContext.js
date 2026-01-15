@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { authAPI } from '../services/apiServices';
 import { toast } from 'react-toastify';
 
@@ -17,15 +17,15 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (token) {
-      loadUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+    toast.info('Logged out successfully');
+  }, []);
 
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     try {
       const response = await authAPI.getMe();
       setUser(response.data.data);
@@ -35,7 +35,15 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout]);
+
+  useEffect(() => {
+    if (token) {
+      loadUser();
+    } else {
+      setLoading(false);
+    }
+  }, [token, loadUser]);
 
   const login = async (credentials) => {
     try {
@@ -75,14 +83,6 @@ export const AuthProvider = ({ children }) => {
       toast.error(message);
       return { success: false, message };
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-    toast.info('Logged out successfully');
   };
 
   const updateUser = (updatedUser) => {
