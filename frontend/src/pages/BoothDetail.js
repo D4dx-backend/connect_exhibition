@@ -70,7 +70,8 @@ const BoothDetail = () => {
         markAsVisited();
       }
     }
-  }, [fetchBoothDetail, isAuthenticated, markAsVisited]);
+  }, [allBooths.length, fetchBoothDetail, isAuthenticated, markAsVisited]);
+  console.log(allBooths.length);
 
   useEffect(() => {
     if (booth && user) {

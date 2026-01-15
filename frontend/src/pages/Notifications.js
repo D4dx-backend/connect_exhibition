@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { notificationAPI } from '../services/apiServices';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { FaBell, FaExclamationCircle, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
+import { FaBell, FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 
 const Notifications = () => {
   const { isAuthenticated } = useAuth();
