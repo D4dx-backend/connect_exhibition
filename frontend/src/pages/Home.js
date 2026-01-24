@@ -8,7 +8,6 @@ const Home = () => {
   const { user, isAuthenticated } = useAuth();
   const [booths, setBooths] = useState([]);
   const [todayPrograms, setTodayPrograms] = useState([]);
-  const [galleryItems, setGalleryItems] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [allImages, setAllImages] = useState([]);
 
@@ -40,8 +39,6 @@ const Home = () => {
     try {
       const response = await galleryAPI.getAll();
       const items = response.data.data || [];
-      setGalleryItems(items);
-      
       // Flatten all images from all gallery items
       const images = items.flatMap(item => item.images || []);
       setAllImages(images);
