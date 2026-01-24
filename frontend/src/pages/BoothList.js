@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { boothAPI } from '../services/apiServices';
 import { normalizeMediaUrl } from '../utils/media';
-import { FaSearch, FaBookmark } from 'react-icons/fa';
+import { FaSearch, FaBookmark, FaMusic } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const BoothList = () => {
@@ -71,34 +71,54 @@ const BoothList = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {booths.map((booth) => {
           const logoUrl = normalizeMediaUrl(booth.logo);
+          const audioUrl = normalizeMediaUrl(booth.audioFile);
           return (
-          <Link
-            key={booth._id}
-            to={`/booths/${booth._id}`}
-            className="bg-white rounded-xl shadow-md hover:shadow-xl transition transform hover:-translate-y-1 overflow-hidden"
-          >
-            <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={booth.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white text-6xl font-bold">{booth.name[0]}</span>
-              )}
-            </div>
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{booth.name}</h3>
-              <p className="text-gray-600 text-sm line-clamp-2">{booth.title}</p>
-              <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-                <span>👁️ {booth.visitCount} visits</span>
-                <span className="flex items-center">
-                  <FaBookmark className="mr-1" /> {booth.bookmarkCount}
-                </span>
+          <div key={booth._id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden">
+            <Link
+              to={`/booths/${booth._id}`}
+              className="block"
+            >
+              <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={booth.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-6xl font-bold">{booth.name[0]}</span>
+                )}
               </div>
-            </div>
-          </Link>
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{booth.name}</h3>
+                <p className="text-gray-600 text-sm line-clamp-2">{booth.title}</p>
+                <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+                  <span>👁️ {booth.visitCount} visits</span>
+                  <span className="flex items-center">
+                    <FaBookmark className="mr-1" /> {booth.bookmarkCount}
+                  </span>
+                </div>
+              </div>
+            </Link>
+            
+            {/* Audio Player */}
+            {audioUrl && (
+              <div className="px-6 pb-4" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-2">
+                  <FaMusic className="text-primary-600 flex-shrink-0" />
+                  <audio
+                    controls
+                    className="w-full h-8"
+                    style={{ maxHeight: '32px' }}
+                    preload="none"
+                  >
+                    <source src={audioUrl} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              </div>
+            )}
+          </div>
           );
         })}
       </div>

@@ -27,6 +27,9 @@ const boothSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  galleryImages: [{
+    type: String
+  }],
   resources: [{
     label: {
       type: String,

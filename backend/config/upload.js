@@ -27,7 +27,23 @@ const spacesCdnEndpoint = process.env.DO_SPACES_CDN_ENDPOINT
   ? normalizeEndpoint(process.env.DO_SPACES_CDN_ENDPOINT)
   : spacesEndpoint;
 const spacesBucket = process.env.DO_SPACES_BUCKET;
-const baseFolder = (process.env.DO_SPACES_FOLDER || 'connecta')
+const stripQuotes = (value) =>
+  value
+    .replace(/[“”"']/g, '')
+    .trim();
+
+// Build a public host safely. Some setups provide CDN endpoint as either:
+// - "blr1.cdn.digitaloceanspaces.com" (needs bucket prefix)
+// - "my-bucket.blr1.cdn.digitaloceanspaces.com" (already includes bucket)
+const buildPublicHost = (bucket, cdnEndpoint) => {
+  const clean = normalizeEndpoint(cdnEndpoint);
+  if (clean === bucket || clean.startsWith(`${bucket}.`)) return clean;
+  return `${bucket}.${clean}`;
+};
+
+const publicHost = buildPublicHost(spacesBucket, spacesCdnEndpoint);
+
+const baseFolder = stripQuotes(process.env.DO_SPACES_FOLDER || 'connecta')
   .replace(/^\/+/, '')
   .replace(/\/+$/, '');
 
@@ -103,7 +119,7 @@ class S3Storage {
         
         cb(null, {
           key: key,
-          location: `https://${this.bucket}.${spacesCdnEndpoint}/${key}`,
+          location: `https://${publicHost}/${key}`,
           bucket: this.bucket,
           etag: result.ETag
         });

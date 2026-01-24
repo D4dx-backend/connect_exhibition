@@ -21,6 +21,7 @@ const BoothDetail = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
   const audioRef = React.useRef(null);
 
   const fetchAllBooths = useCallback(async () => {
@@ -105,6 +106,40 @@ const BoothDetail = () => {
         audioRef.current.play();
       }
       setAudioPlaying(!audioPlaying);
+    }
+  };
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeId = (url) => {
+    if (!url) return null;
+    
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    
+    return null;
+  };
+
+  // Gallery navigation functions
+  const nextGalleryImage = () => {
+    if (booth?.galleryImages && booth.galleryImages.length > 0) {
+      setCurrentGalleryIndex((prev) => 
+        prev === booth.galleryImages.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevGalleryImage = () => {
+    if (booth?.galleryImages && booth.galleryImages.length > 0) {
+      setCurrentGalleryIndex((prev) => 
+        prev === 0 ? booth.galleryImages.length - 1 : prev - 1
+      );
     }
   };
 
@@ -520,18 +555,89 @@ const BoothDetail = () => {
         </div>
       )}
 
-      {/* Video Section */}
-      {videoUrl && (
+      {/* Video Section - YouTube Embed */}
+      {videoUrl && extractYouTubeId(videoUrl) && (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Video</h3>
-          <video
-            controls
-            className="w-full rounded-lg"
-            poster={logoUrl || undefined}
-          >
-            <source src={videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-gray-800">Video</h3>
+            <a
+              href={videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              <FaExternalLinkAlt />
+              <span>Watch on YouTube</span>
+            </a>
+          </div>
+          <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${extractYouTubeId(videoUrl)}`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute top-0 left-0 w-full h-full rounded-lg"
+            ></iframe>
+          </div>
+        </div>
+      )}
+
+      {/* Gallery Section */}
+      {booth?.galleryImages && booth.galleryImages.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Gallery</h3>
+          <div className="relative">
+            <img
+              src={normalizeMediaUrl(booth.galleryImages[currentGalleryIndex])}
+              alt={`Gallery ${currentGalleryIndex + 1}`}
+              className="w-full h-96 object-cover rounded-lg"
+            />
+            
+            {booth.galleryImages.length > 1 && (
+              <>
+                <button
+                  onClick={prevGalleryImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition"
+                >
+                  <FaArrowLeft />
+                </button>
+                <button
+                  onClick={nextGalleryImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition"
+                >
+                  <FaArrowRight />
+                </button>
+                
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm">
+                  {currentGalleryIndex + 1} / {booth.galleryImages.length}
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Gallery Thumbnails */}
+          {booth.galleryImages.length > 1 && (
+            <div className="flex space-x-2 mt-4 overflow-x-auto pb-2">
+              {booth.galleryImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentGalleryIndex(index)}
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
+                    index === currentGalleryIndex
+                      ? 'border-primary-600'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <img
+                    src={normalizeMediaUrl(image)}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
