@@ -8,7 +8,7 @@ import {
 import logo from '../../assets/connecta-logo.svg';
 
 const Layout = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,19 +44,19 @@ const Layout = () => {
       {/* Header */}
       <header className="glass-dark text-white shadow-lg sticky top-0 z-50 transition-morph">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/home" className="flex items-center space-x-3 text-xl md:text-2xl font-bold">
+          <div className="flex items-center justify-between h-16 gap-3">
+            <Link to="/home" className="flex items-center space-x-3 text-xl md:text-2xl font-bold flex-shrink-0">
               <img src={logo} alt="Connecta" className="h-10 w-10" />
               <span className="text-white">Connecta</span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
+            <nav className="hidden md:flex flex-1 min-w-0 items-center justify-center gap-3 lg:gap-5 text-xs lg:text-sm overflow-x-auto whitespace-nowrap no-scrollbar px-2">
               {authenticatedNavItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="flex items-center space-x-2 hover:text-primary-200 transition"
+                  className="flex items-center space-x-2 shrink-0 hover:text-primary-200 transition"
                 >
                   {item.icon}
                   <span>{item.label}</span>
@@ -65,7 +65,7 @@ const Layout = () => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className="flex items-center space-x-2 hover:text-primary-200 transition bg-primary-700 px-3 py-2 rounded-lg"
+                  className="flex items-center space-x-2 shrink-0 hover:text-primary-200 transition bg-primary-700 px-2.5 py-1.5 rounded-lg"
                 >
                   <FaUserShield />
                   <span>Admin</span>
@@ -74,46 +74,15 @@ const Layout = () => {
             </nav>
 
             {/* User Menu */}
-            <div className="flex items-center space-x-4">
-              {/* App-bar actions (mobile-first) */}
-              <div className="flex items-center space-x-2">
-                {isAuthenticated && (
-                  <Link
-                    to="/profile"
-                    aria-label="Bookmarks"
-                    title="Bookmarks"
-                    className="glass rounded-full w-10 h-10 flex items-center justify-center text-white/90 hover:text-white transition-morph"
-                  >
-                    <FaBookmark />
-                  </Link>
-                )}
-                <Link
-                  to="/notifications"
-                  aria-label="Info"
-                  title="Info"
-                  className="glass rounded-full w-10 h-10 flex items-center justify-center text-white/90 hover:text-white transition-morph"
-                >
-                  <FaBell />
-                </Link>
-              </div>
-
+            <div className="flex items-center space-x-3 flex-shrink-0">
               {isAuthenticated ? (
-                <>
-                  <Link
-                    to="/profile"
-                    className="hidden md:flex items-center space-x-2 hover:text-primary-200"
-                  >
-                    <FaUser />
-                    <span>{user?.name}</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="hidden md:flex items-center space-x-2 hover:text-primary-200"
-                  >
-                    <FaSignOutAlt />
-                    <span>Logout</span>
-                  </button>
-                </>
+                <button
+                  onClick={handleLogout}
+                  className="hidden md:flex items-center space-x-2 hover:text-primary-200"
+                >
+                  <FaSignOutAlt />
+                  <span>Logout</span>
+                </button>
               ) : (
                 <Link
                   to="/login"

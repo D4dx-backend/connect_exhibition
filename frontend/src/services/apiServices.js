@@ -79,4 +79,17 @@ export const programAPI = {
   delete: (id) => API.delete(`/programs/${id}`),
 };
 
+// Gallery APIs
+export const galleryAPI = {
+  getAll: () => API.get('/gallery'),
+  getAllAdmin: () => API.get('/gallery/admin/all'),
+  getById: (id) => API.get(`/gallery/${id}`),
+  create: (data) => API.post('/gallery', data),
+  update: (id, data) => API.put(`/gallery/${id}`, data),
+  delete: (id) => API.delete(`/gallery/${id}`),
+  uploadImages: (formData) => API.post('/gallery/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+};
+
 export default API;

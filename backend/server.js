@@ -18,6 +18,7 @@ const quizConfigRoutes = require('./routes/quizConfig');
 const feedbackRoutes = require('./routes/feedback');
 const notificationRoutes = require('./routes/notifications');
 const programRoutes = require('./routes/programs');
+const galleryRoutes = require('./routes/gallery');
 
 // Initialize express app
 const app = express();
@@ -59,6 +60,7 @@ app.use('/api/quiz-config', quizConfigRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/programs', programRoutes);
+app.use('/api/gallery', galleryRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

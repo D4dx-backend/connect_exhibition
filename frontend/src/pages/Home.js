@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { boothAPI, programAPI } from '../services/apiServices';
-import { FaStore, FaQuestionCircle, FaCommentAlt, FaBell, FaBookmark, FaTrophy, FaCalendarAlt, FaClock, FaUser } from 'react-icons/fa';
+import { boothAPI, programAPI, galleryAPI } from '../services/apiServices';
+import { FaStore, FaQuestionCircle, FaCommentAlt, FaBell, FaBookmark, FaTrophy, FaCalendarAlt, FaClock, FaUser, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
   const [booths, setBooths] = useState([]);
   const [todayPrograms, setTodayPrograms] = useState([]);
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [allImages, setAllImages] = useState([]);
 
   useEffect(() => {
     fetchBooths();
     fetchTodayPrograms();
+    fetchGalleryImages();
   }, []);
 
   const fetchBooths = async () => {
@@ -30,6 +34,38 @@ const Home = () => {
     } catch (error) {
       console.error('Failed to load today\'s programs');
     }
+  };
+
+  const fetchGalleryImages = async () => {
+    try {
+      const response = await galleryAPI.getAll();
+      const items = response.data.data || [];
+      setGalleryItems(items);
+      
+      // Flatten all images from all gallery items
+      const images = items.flatMap(item => item.images || []);
+      setAllImages(images);
+    } catch (error) {
+      console.error('Failed to load gallery images');
+    }
+  };
+
+  useEffect(() => {
+    if (allImages.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+      }, 5000); // Change image every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [allImages.length]);
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
   };
 
   const formatTime = (time) => {
@@ -95,6 +131,55 @@ const Home = () => {
 
   return (
     <div className="fade-in">
+      {/* Gallery Slider Section */}
+      {allImages.length > 0 && (
+        <div className="glass-card rounded-2xl shadow-md mb-6 overflow-hidden">
+          <div className="relative h-64 sm:h-80 md:h-96">
+            <img
+              src={allImages[currentImageIndex]}
+              alt="Gallery"
+              className="w-full h-full object-cover transition-opacity duration-1000"
+              key={currentImageIndex}
+            />
+            {/* Overlay for better visibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            
+            {/* Navigation arrows */}
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-full transition backdrop-blur-sm"
+                >
+                  <FaChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-full transition backdrop-blur-sm"
+                >
+                  <FaChevronRight size={20} />
+                </button>
+                
+                {/* Image indicator dots */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {allImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-2 h-2 rounded-full transition ${
+                        index === currentImageIndex
+                          ? 'bg-white w-8'
+                          : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Compact Welcome Header */}
       <div className="glass-card rounded-2xl p-4 mb-6 shadow-md">
         <h1 className="text-xl font-bold mb-1">

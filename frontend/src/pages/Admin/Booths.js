@@ -11,6 +11,7 @@ import {
 const AdminBooths = () => {
   const [booths, setBooths] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingBooth, setEditingBooth] = useState(null);
   const [formData, setFormData] = useState({
@@ -24,8 +25,11 @@ const AdminBooths = () => {
     isPublished: true
   });
   const [logoFile, setLogoFile] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
   const [audioUrl, setAudioUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [uploadedGalleryImages, setUploadedGalleryImages] = useState([]);
   const [resources, setResources] = useState([]);
   const [newResource, setNewResource] = useState({ label: '', url: '', type: 'document' });
   const [isHtmlMode, setIsHtmlMode] = useState(false);
@@ -33,6 +37,29 @@ const AdminBooths = () => {
   useEffect(() => {
     fetchBooths();
   }, []);
+
+  // Function to extract YouTube video ID from URL
+  const extractYouTubeId = (url) => {
+    if (!url) return null;
+    
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    
+    return null;
+  };
+
+  // Function to validate YouTube URL
+  const validateYouTubeUrl = (url) => {
+    if (!url) return true; // Empty is valid
+    return extractYouTubeId(url) !== null;
+  };
 
   const fetchBooths = async () => {
     try {
@@ -48,35 +75,64 @@ const AdminBooths = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate YouTube URL if provided
+    if (videoUrl && !validateYouTubeUrl(videoUrl)) {
+      toast.error('Please enter a valid YouTube URL');
+      return;
+    }
+    
+    setSubmitting(true);
+    
     try {
       let logoUrl = editingBooth?.logo || '';
-      let audioFileUrl = audioUrl;
+      let audioFileUrl = editingBooth?.audioFile || audioUrl;
       let videoFileUrl = videoUrl;
+      let galleryImageUrls = [...uploadedGalleryImages];
 
       // Upload files to DigitalOcean Spaces if provided
-      if (logoFile || audioUrl || videoUrl) {
+      if (logoFile || audioFile || galleryFiles.length > 0) {
         const uploadFormData = new FormData();
         if (logoFile) uploadFormData.append('logo', logoFile);
+        if (audioFile) uploadFormData.append('audio', audioFile);
+        
+        // Add gallery images
+        if (galleryFiles.length > 0) {
+          for (let i = 0; i < galleryFiles.length; i++) {
+            uploadFormData.append('galleryImages', galleryFiles[i]);
+          }
+        }
         
         try {
           const uploadResponse = await boothAPI.uploadMedia(uploadFormData);
           if (uploadResponse.data.data.logo) {
             logoUrl = uploadResponse.data.data.logo;
-            toast.success('Logo uploaded successfully');
           }
+          if (uploadResponse.data.data.audioFile) {
+            audioFileUrl = uploadResponse.data.data.audioFile;
+          }
+          if (uploadResponse.data.data.galleryImages) {
+            galleryImageUrls = [...galleryImageUrls, ...uploadResponse.data.data.galleryImages];
+          }
+          toast.success('Files uploaded successfully');
         } catch (uploadError) {
           toast.error('Failed to upload files: ' + (uploadError.response?.data?.message || uploadError.message));
+          setSubmitting(false);
           return;
         }
       }
 
-      // Prepare booth data
-    const normalizedResources = resources.map((resource) => ({
-      ...resource,
-      type: resource.type === 'pdf' ? 'document' : resource.type
-    }));
+      // If audio URL is provided (not file), use it
+      if (!audioFile && audioUrl) {
+        audioFileUrl = audioUrl;
+      }
 
-    const boothData = {
+      // Prepare booth data
+      const normalizedResources = resources.map((resource) => ({
+        ...resource,
+        type: resource.type === 'pdf' ? 'document' : resource.type
+      }));
+
+      const boothData = {
         name: formData.name,
         title: formData.title,
         description: formData.description,
@@ -85,7 +141,8 @@ const AdminBooths = () => {
         logo: logoUrl,
         audioFile: audioFileUrl,
         videoFile: videoFileUrl,
-      resources: normalizedResources
+        galleryImages: galleryImageUrls,
+        resources: normalizedResources
       };
       
       if (editingBooth) {
@@ -100,6 +157,8 @@ const AdminBooths = () => {
       closeModal();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save booth');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -121,8 +180,9 @@ const AdminBooths = () => {
       isPublished: booth.isPublished
     });
     setResources(booth.resources || []);
-    setAudioUrl(booth.media?.audioUrl || '');
-    setVideoUrl(booth.media?.videoUrl || '');
+    setAudioUrl(booth.audioFile || '');
+    setVideoUrl(booth.videoFile || '');
+    setUploadedGalleryImages(booth.galleryImages || []);
     setShowModal(true);
   };
 
@@ -165,8 +225,11 @@ const AdminBooths = () => {
       isPublished: true
     });
     setLogoFile(null);
+    setAudioFile(null);
     setAudioUrl('');
     setVideoUrl('');
+    setGalleryFiles([]);
+    setUploadedGalleryImages([]);
     setResources([]);
   };
 
@@ -270,15 +333,29 @@ const AdminBooths = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-20">
               <h2 className="text-2xl font-bold text-gray-800">
                 {editingBooth ? 'Edit Booth' : 'Create New Booth'}
               </h2>
-              <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-700" disabled={submitting}>
                 <FaTimes size={24} />
               </button>
             </div>
+
+            {/* Loading Overlay */}
+            {submitting && (
+              <div className="absolute inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 rounded-xl">
+                <img
+                  src="/loading.svg"
+                  alt="Loading..."
+                  style={{ width: '250px', height: '250px' }}
+                />
+                <p className="mt-4 text-gray-700 font-medium text-lg">
+                  {editingBooth ? 'Updating booth...' : 'Creating booth...'}
+                </p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Basic Information */}
@@ -366,7 +443,8 @@ const AdminBooths = () => {
               <div className="space-y-4 border-t border-gray-200 pt-6">
                 <h3 className="text-lg font-semibold text-gray-800">Media Files</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-4">
+                  {/* Logo */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <FaImage className="inline mr-2" />Logo
@@ -377,32 +455,148 @@ const AdminBooths = () => {
                       onChange={(e) => setLogoFile(e.target.files[0])}
                       className="w-full text-sm"
                     />
+                    {editingBooth?.logo && (
+                      <p className="text-xs text-gray-500 mt-1">Current: {editingBooth.logo.split('/').pop()}</p>
+                    )}
                   </div>
 
+                  {/* Audio - File or URL */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <FaMusic className="inline mr-2" />Audio URL
+                      <FaMusic className="inline mr-2" />Audio (File or URL)
+                    </label>
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={(e) => {
+                          setAudioFile(e.target.files[0]);
+                          setAudioUrl('');
+                        }}
+                        className="w-full text-sm"
+                      />
+                      <div className="text-center text-gray-500 text-sm">OR</div>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/audio.mp3"
+                        value={audioUrl}
+                        onChange={(e) => {
+                          setAudioUrl(e.target.value);
+                          setAudioFile(null);
+                        }}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    {editingBooth?.audioFile && (
+                      <p className="text-xs text-gray-500 mt-1">Current: {editingBooth.audioFile.split('/').pop()}</p>
+                    )}
+                  </div>
+
+                  {/* Video - YouTube URL only */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FaVideo className="inline mr-2" />YouTube Video URL
                     </label>
                     <input
                       type="url"
-                      placeholder="https://example.com/audio.mp3"
-                      value={audioUrl}
-                      onChange={(e) => setAudioUrl(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <FaVideo className="inline mr-2" />Video URL
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://example.com/video.mp4"
+                      placeholder="https://www.youtube.com/watch?v=..."
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter a valid YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+                    </p>
+                    {editingBooth?.videoFile && (
+                      <p className="text-xs text-gray-500 mt-1">Current: {editingBooth.videoFile}</p>
+                    )}
+                  </div>
+
+                  {/* Gallery Images */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FaImage className="inline mr-2" />Gallery Images (up to 25)
+                    </label>
+                    
+                    {/* Display already uploaded images (in edit mode) */}
+                    {uploadedGalleryImages.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs text-blue-600 mb-2">
+                          Current: {uploadedGalleryImages.length} image(s) uploaded
+                        </p>
+                        <div className="grid grid-cols-4 gap-2">
+                          {uploadedGalleryImages.map((img, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={img}
+                                alt={`Uploaded ${idx + 1}`}
+                                className="w-full h-20 object-cover rounded"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newImages = uploadedGalleryImages.filter((_, i) => i !== idx);
+                                  setUploadedGalleryImages(newImages);
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                                disabled={submitting}
+                              >
+                                <FaTimes size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* File input for new images */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        if (files.length > 25) {
+                          toast.warning('Maximum 25 images allowed');
+                          setGalleryFiles(files.slice(0, 25));
+                        } else {
+                          setGalleryFiles(files);
+                        }
+                      }}
+                      className="w-full text-sm"
+                      disabled={submitting}
+                    />
+                    
+                    {/* Display newly selected images */}
+                    {galleryFiles.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs text-green-600 mb-2">
+                          {galleryFiles.length} new image(s) selected
+                        </p>
+                        <div className="grid grid-cols-4 gap-2">
+                          {galleryFiles.map((file, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Selected ${idx + 1}`}
+                                className="w-full h-20 object-cover rounded"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newFiles = galleryFiles.filter((_, i) => i !== idx);
+                                  setGalleryFiles(newFiles);
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                                disabled={submitting}
+                              >
+                                <FaTimes size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -545,14 +739,16 @@ const AdminBooths = () => {
               <div className="flex space-x-3 border-t border-gray-200 pt-6">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
+                  className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
                 >
                   {editingBooth ? 'Update Booth' : 'Create Booth'}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+                  className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>

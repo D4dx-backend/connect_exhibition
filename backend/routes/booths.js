@@ -34,7 +34,8 @@ router.post(
   upload.fields([
     { name: 'logo', maxCount: 1 },
     { name: 'audio', maxCount: 1 },
-    { name: 'video', maxCount: 1 }
+    { name: 'video', maxCount: 1 },
+    { name: 'galleryImages', maxCount: 25 }
   ]),
   uploadMedia
 );

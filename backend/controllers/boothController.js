@@ -238,22 +238,21 @@ exports.uploadMedia = async (req, res, next) => {
     }
 
     const uploadedFiles = {};
-    const normalizeEndpoint = (value) =>
-      value.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-    const spacesEndpoint = normalizeEndpoint(process.env.DO_SPACES_ENDPOINT);
-    const spacesCdnEndpoint = process.env.DO_SPACES_CDN_ENDPOINT
-      ? normalizeEndpoint(process.env.DO_SPACES_CDN_ENDPOINT)
-      : spacesEndpoint;
-    const spacesUrl = `https://${process.env.DO_SPACES_BUCKET}.${spacesCdnEndpoint}`;
 
+    // Use the location field that multer provides (already has full CDN URL)
     if (req.files.logo) {
-      uploadedFiles.logo = `${spacesUrl}/${req.files.logo[0].key}`;
+      uploadedFiles.logo = req.files.logo[0].location;
     }
     if (req.files.audio) {
-      uploadedFiles.audioFile = `${spacesUrl}/${req.files.audio[0].key}`;
+      uploadedFiles.audioFile = req.files.audio[0].location;
     }
     if (req.files.video) {
-      uploadedFiles.videoFile = `${spacesUrl}/${req.files.video[0].key}`;
+      uploadedFiles.videoFile = req.files.video[0].location;
+    }
+    if (req.files.galleryImages) {
+      uploadedFiles.galleryImages = req.files.galleryImages.map(
+        file => file.location
+      );
     }
 
     res.status(200).json({

@@ -26,6 +26,7 @@ import Programs from './pages/Programs';
 // Admin Pages
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminBooths from './pages/Admin/Booths';
+import AdminGallery from './pages/Admin/Gallery';
 import AdminQuestions from './pages/Admin/Questions';
 import AdminQuizResults from './pages/Admin/QuizResults';
 import AdminQuizSettings from './pages/Admin/QuizSettings';
@@ -108,6 +109,7 @@ function App() {
           }>
             <Route index element={<AdminDashboard />} />
             <Route path="booths" element={<AdminBooths />} />
+            <Route path="gallery" element={<AdminGallery />} />
             <Route path="questions" element={<AdminQuestions />} />
             <Route path="quiz-results" element={<AdminQuizResults />} />
             <Route path="quiz-settings" element={<AdminQuizSettings />} />
