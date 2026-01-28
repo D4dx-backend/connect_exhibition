@@ -12,6 +12,7 @@ const AdminGallery = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
   const [formData, setFormData] = useState({
     isActive: true
   });
@@ -120,6 +121,15 @@ const AdminGallery = () => {
     setUploadedImages([]);
   };
 
+  const openPreview = (imageUrl) => {
+    if (!imageUrl) return;
+    setPreviewImage(imageUrl);
+  };
+
+  const closePreview = () => {
+    setPreviewImage(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -154,7 +164,8 @@ const AdminGallery = () => {
                 <img
                   src={item.images[0]}
                   alt="Gallery"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-zoom-in"
+                  onClick={() => openPreview(item.images[0])}
                 />
               ) : (
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -349,6 +360,32 @@ const AdminGallery = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
+          onClick={closePreview}
+        >
+          <div
+            className="relative max-w-6xl w-full max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closePreview}
+              className="absolute -top-4 -right-4 bg-white text-gray-700 rounded-full p-2 shadow hover:bg-gray-100"
+              aria-label="Close preview"
+            >
+              <FaTimes size={18} />
+            </button>
+            <img
+              src={previewImage}
+              alt="Gallery preview"
+              className="max-h-[90vh] max-w-full object-contain rounded-lg"
+            />
           </div>
         </div>
       )}

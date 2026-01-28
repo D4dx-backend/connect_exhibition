@@ -37,9 +37,9 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+    <div className="h-screen flex bg-gray-100 overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-800 text-white flex flex-col">
+      <aside className="w-64 bg-gray-800 text-white flex flex-col h-screen flex-shrink-0">
         <div className="p-6 border-b border-gray-700">
           <h1 className="text-2xl font-bold">Admin Panel</h1>
         </div>
@@ -61,7 +61,7 @@ const AdminLayout = () => {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-700 space-y-2">
+        <div className="p-4 border-t border-gray-700 space-y-2 mt-auto">
           <Link
             to="/home"
             className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition"

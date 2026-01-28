@@ -10,6 +10,7 @@ const Home = () => {
   const [todayPrograms, setTodayPrograms] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [allImages, setAllImages] = useState([]);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   useEffect(() => {
     fetchBooths();
@@ -63,6 +64,15 @@ const Home = () => {
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
+
+  const openLightbox = (imageUrl) => {
+    if (!imageUrl) return;
+    setLightboxImage(imageUrl);
+  };
+
+  const closeLightbox = () => {
+    setLightboxImage(null);
   };
 
   const formatTime = (time) => {
@@ -135,11 +145,12 @@ const Home = () => {
             <img
               src={allImages[currentImageIndex]}
               alt="Gallery"
-              className="w-full h-full object-cover transition-opacity duration-1000"
+              className="w-full h-full object-cover transition-opacity duration-1000 cursor-zoom-in"
               key={currentImageIndex}
+              onClick={() => openLightbox(allImages[currentImageIndex])}
             />
-            {/* Overlay for better visibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            {/* Overlay for better visibility (click-through so image click still works) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
             
             {/* Navigation arrows */}
             {allImages.length > 1 && (
@@ -294,6 +305,32 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
+          onClick={closeLightbox}
+        >
+          <div
+            className="relative max-w-6xl w-full max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeLightbox}
+              className="absolute -top-4 -right-4 bg-white text-gray-700 rounded-full p-2 shadow hover:bg-gray-100"
+              aria-label="Close preview"
+            >
+              x
+            </button>
+            <img
+              src={lightboxImage}
+              alt="Gallery preview"
+              className="max-h-[90vh] max-w-full object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
