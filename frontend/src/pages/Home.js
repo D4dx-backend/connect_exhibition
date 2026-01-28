@@ -140,12 +140,12 @@ const Home = () => {
     <div className="fade-in">
       {/* Gallery Slider Section */}
       {allImages.length > 0 && (
-        <div className="glass-card rounded-2xl shadow-md mb-6 overflow-hidden">
-          <div className="relative h-64 sm:h-80 md:h-96">
+        <div className="rounded-2xl mb-6 overflow-hidden">
+          <div className="relative h-64 sm:h-80 md:h-96 bg-transparent">
             <img
               src={allImages[currentImageIndex]}
               alt="Gallery"
-              className="w-full h-full object-cover transition-opacity duration-1000 cursor-zoom-in"
+              className="w-full h-full object-contain transition-opacity duration-1000 cursor-zoom-in"
               key={currentImageIndex}
               onClick={() => openLightbox(allImages[currentImageIndex])}
             />

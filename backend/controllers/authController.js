@@ -13,7 +13,7 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, mobile, place } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -28,7 +28,9 @@ exports.register = async (req, res, next) => {
     const user = await User.create({
       name,
       email,
-      password
+      password,
+      mobile,
+      place
     });
 
     // Generate token
@@ -123,11 +125,11 @@ exports.getMe = async (req, res, next) => {
 // @access  Private
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, mobile, place } = req.body;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, email },
+      { name, email, mobile, place },
       { new: true, runValidators: true }
     );
 
