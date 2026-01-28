@@ -9,6 +9,8 @@ const BoothList = () => {
   const [booths, setBooths] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [lightboxImage, setLightboxImage] = useState(null);
+  const [lightboxAlt, setLightboxAlt] = useState('');
 
   const fetchBooths = useCallback(async () => {
     try {
@@ -28,6 +30,17 @@ const BoothList = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     fetchBooths();
+  };
+
+  const openLightbox = (imageUrl, altText) => {
+    if (!imageUrl) return;
+    setLightboxImage(imageUrl);
+    setLightboxAlt(altText || 'Booth image');
+  };
+
+  const closeLightbox = () => {
+    setLightboxImage(null);
+    setLightboxAlt('');
   };
 
   if (loading) {
@@ -83,7 +96,12 @@ const BoothList = () => {
                   <img
                     src={logoUrl}
                     alt={booth.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-zoom-in"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openLightbox(logoUrl, booth.name);
+                    }}
                   />
                 ) : (
                   <span className="text-white text-6xl font-bold">{booth.name[0]}</span>
@@ -126,6 +144,32 @@ const BoothList = () => {
       {booths.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No booths found</p>
+        </div>
+      )}
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
+          onClick={closeLightbox}
+        >
+          <div
+            className="relative max-w-6xl w-full max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeLightbox}
+              className="absolute -top-4 -right-4 bg-white text-gray-700 rounded-full p-2 shadow hover:bg-gray-100"
+              aria-label="Close preview"
+            >
+              x
+            </button>
+            <img
+              src={lightboxImage}
+              alt={lightboxAlt}
+              className="max-h-[90vh] max-w-full object-contain rounded-lg"
+            />
+          </div>
         </div>
       )}
     </div>
