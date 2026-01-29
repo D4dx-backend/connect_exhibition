@@ -25,6 +25,7 @@ import Programs from './pages/Programs';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/Dashboard';
+import AdminUsers from './pages/Admin/Users';
 import AdminBooths from './pages/Admin/Booths';
 import AdminGallery from './pages/Admin/Gallery';
 import AdminQuestions from './pages/Admin/Questions';
@@ -82,18 +83,46 @@ function App() {
           {/* Protected Routes with Layout */}
           <Route path="/" element={<Layout />}>
             <Route index element={<Landing />} />
-            <Route path="home" element={<Home />} />
-            <Route path="booths" element={<BoothList />} />
-            <Route path="booths/:id" element={<BoothDetail />} />
-            <Route path="quiz" element={<Quiz />} />
-            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="home" element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
+            <Route path="booths" element={
+              <ProtectedRoute>
+                <BoothList />
+              </ProtectedRoute>
+            } />
+            <Route path="booths/:id" element={
+              <ProtectedRoute>
+                <BoothDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="quiz" element={
+              <ProtectedRoute>
+                <Quiz />
+              </ProtectedRoute>
+            } />
+            <Route path="leaderboard" element={
+              <ProtectedRoute>
+                <Leaderboard />
+              </ProtectedRoute>
+            } />
             <Route path="feedback" element={
               <ProtectedRoute>
                 <Feedback />
               </ProtectedRoute>
             } />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="programs" element={<Programs />} />
+            <Route path="notifications" element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            } />
+            <Route path="programs" element={
+              <ProtectedRoute>
+                <Programs />
+              </ProtectedRoute>
+            } />
             <Route path="profile" element={
               <ProtectedRoute>
                 <Profile />
@@ -108,6 +137,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
             <Route path="booths" element={<AdminBooths />} />
             <Route path="gallery" element={<AdminGallery />} />
             <Route path="questions" element={<AdminQuestions />} />

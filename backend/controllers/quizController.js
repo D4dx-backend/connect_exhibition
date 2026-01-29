@@ -1,6 +1,7 @@
 const Question = require('../models/Question');
 const QuizAttempt = require('../models/QuizAttempt');
 const Booth = require('../models/Booth');
+require('../models/GuestUser');
 
 // @desc    Get random quiz questions (1 from each booth)
 // @route   GET /api/quiz/questions
@@ -8,39 +9,57 @@ const Booth = require('../models/Booth');
 exports.getQuizQuestions = async (req, res, next) => {
   try {
     // Get all published booths
-    const booths = await Booth.find({ isPublished: true }).limit(10);
+    const booths = await Booth.find({ isPublished: true })
+      .select('name')
+      .lean();
 
-    if (booths.length < 10) {
+    if (booths.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Not enough booths available for quiz'
+        message: 'No published booths available for quiz'
       });
     }
 
+    const boothMap = new Map(booths.map(booth => [booth._id.toString(), booth]));
+    const boothIds = booths.map(booth => booth._id);
+
+    const activeQuestions = await Question.find({
+      booth: { $in: boothIds },
+      isActive: true
+    }).lean();
+
+    if (activeQuestions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active questions available for quiz'
+      });
+    }
+
+    const questionsByBooth = new Map();
+    activeQuestions.forEach(question => {
+      const boothId = question.booth.toString();
+      if (!questionsByBooth.has(boothId)) {
+        questionsByBooth.set(boothId, []);
+      }
+      questionsByBooth.get(boothId).push(question);
+    });
+
     const questions = [];
 
-    // Get one random question from each booth
-    for (const booth of booths) {
-      const boothQuestions = await Question.find({
-        booth: booth._id,
-        isActive: true
-      });
-
-      if (boothQuestions.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: `Booth ${booth.name} has no active questions`
-        });
+    // Pick one random question from each booth that has questions
+    for (const [boothId, boothQuestions] of questionsByBooth.entries()) {
+      const booth = boothMap.get(boothId);
+      if (!booth) {
+        continue;
       }
 
-      // Select random question
       const randomIndex = Math.floor(Math.random() * boothQuestions.length);
       const selectedQuestion = boothQuestions[randomIndex];
 
       // Remove isCorrect flag from options before sending
       const sanitizedQuestion = {
         _id: selectedQuestion._id,
-        booth: booth._id,
+        booth: selectedQuestion.booth,
         boothName: booth.name,
         question: selectedQuestion.question,
         options: selectedQuestion.options.map((opt, index) => ({
@@ -53,10 +72,18 @@ exports.getQuizQuestions = async (req, res, next) => {
       questions.push(sanitizedQuestion);
     }
 
+    // Shuffle and cap at 10 questions (one per booth)
+    for (let i = questions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+
+    const finalQuestions = questions.slice(0, 10);
+
     res.status(200).json({
       success: true,
-      count: questions.length,
-      data: questions
+      count: finalQuestions.length,
+      data: finalQuestions
     });
   } catch (error) {
     next(error);
@@ -409,7 +436,7 @@ exports.getAllQuizAttempts = async (req, res, next) => {
       .sort({ attemptDate: -1, score: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('user', 'name email')
+      .populate('user', 'name email mobile')
       .populate('guestUser', 'name mobile place age');
     
     const total = await QuizAttempt.countDocuments(filter);
