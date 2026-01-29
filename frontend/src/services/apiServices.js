@@ -92,4 +92,10 @@ export const galleryAPI = {
   }),
 };
 
+// User/Admin APIs
+export const userAPI = {
+  getAll: (params) => API.get('/users', { params }),
+  getAdminOverview: () => API.get('/users/admin/overview'),
+};
+
 export default API;

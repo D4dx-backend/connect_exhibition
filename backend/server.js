@@ -19,6 +19,7 @@ const feedbackRoutes = require('./routes/feedback');
 const notificationRoutes = require('./routes/notifications');
 const programRoutes = require('./routes/programs');
 const galleryRoutes = require('./routes/gallery');
+const userRoutes = require('./routes/users');
 
 // Initialize express app
 const app = express();
@@ -61,6 +62,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/programs', programRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

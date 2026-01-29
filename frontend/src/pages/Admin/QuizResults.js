@@ -3,8 +3,9 @@ import { toast } from 'react-toastify';
 import API from '../../services/api';
 import { 
   FaCalendar, FaUser, FaPhone, FaMapMarkerAlt, FaTrophy, 
-  FaClock, FaDownload, FaSearch, FaFilter 
+  FaClock, FaSearch, FaFilter, FaDownload 
 } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
 
 const AdminQuizResults = () => {
   const [attempts, setAttempts] = useState([]);
@@ -23,6 +24,13 @@ const AdminQuizResults = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  const getAttemptsEndpoint = () => {
+    const baseUrl = API.defaults.baseURL || '';
+    if (baseUrl.includes('/api/quiz')) return '/attempts';
+    if (baseUrl.includes('/api')) return '/quiz/attempts';
+    return '/api/quiz/attempts';
+  };
+
   const fetchAttempts = async () => {
     setLoading(true);
     try {
@@ -33,12 +41,12 @@ const AdminQuizResults = () => {
       if (filters.mobile) params.mobile = filters.mobile;
       params.page = filters.page;
 
-      const response = await API.get('/quiz/attempts', { params });
+      const response = await API.get(getAttemptsEndpoint(), { params });
       setAttempts(response.data.data);
       setStats(response.data.stats);
     } catch (error) {
       if (error.response?.status !== 404) {
-        toast.error('Failed to load quiz attempts');
+        toast.error(error.response?.data?.message || 'Failed to load quiz attempts');
       }
       setAttempts([]);
       setStats(null);
@@ -63,41 +71,97 @@ const AdminQuizResults = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const exportToCSV = () => {
+  const exportToExcel = () => {
     if (attempts.length === 0) {
-      toast.error('No data to export');
+      toast.warning('No data to export');
       return;
     }
 
-    const headers = ['Date', 'Name', 'Mobile', 'Place', 'Age', 'Score', 'Correct', 'Time', 'Type'];
-    const rows = attempts.map(a => {
-      const user = a.userType === 'guest' ? a.guestUser : a.user;
-      return [
-        formatDate(a.attemptDate),
-        user?.name || 'N/A',
-        a.userType === 'guest' ? user?.mobile : 'Registered',
-        a.userType === 'guest' ? user?.place : 'N/A',
-        a.userType === 'guest' ? user?.age : 'N/A',
-        a.score,
-        `${a.correctAnswers}/${a.totalQuestions}`,
-        formatTime(a.totalTime),
-        a.userType
-      ];
+    // Format data exactly matching the table structure
+    const exportData = attempts.map((attempt) => {
+      const user = attempt.userType === 'guest' ? attempt.guestUser : attempt.user;
+      const percentage = Number.isFinite(attempt.percentage)
+        ? attempt.percentage
+        : (attempt.totalQuestions ? (attempt.correctAnswers / attempt.totalQuestions) * 100 : 0);
+      
+      // Format Date & Time
+      const dateTime = formatDate(attempt.attemptDate);
+      
+      // Format Name
+      const name = user?.name || 'N/A';
+      
+      // Format Contact
+      let contact;
+      if (attempt.userType === 'guest') {
+        contact = `${user?.mobile || 'N/A'} | Age: ${user?.age || 'N/A'}`;
+      } else {
+        contact = user?.mobile || 'N/A';
+      }
+      
+      // Format Location
+      let location;
+      if (attempt.userType === 'guest' && user?.place) {
+        location = user.place;
+      } else {
+        location = '-';
+      }
+      
+      // Format Score
+      const score = attempt.score;
+      
+      // Format Accuracy
+      const accuracy = `${attempt.correctAnswers}/${attempt.totalQuestions} (${percentage.toFixed(0)}%)`;
+      
+      // Format Time
+      const time = formatTime(attempt.totalTime);
+      
+      // Format Type
+      const type = attempt.userType;
+
+      return {
+        'Date & Time': dateTime,
+        'Name': name,
+        'Contact': contact,
+        'Location': location,
+        'Score': score,
+        'Accuracy': accuracy,
+        'Time': time,
+        'Type': type
+      };
     });
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    
+    // Set column widths for better readability
+    worksheet['!cols'] = [
+      { wch: 20 }, // Date & Time
+      { wch: 20 }, // Name
+      { wch: 25 }, // Contact
+      { wch: 15 }, // Location
+      { wch: 10 }, // Score
+      { wch: 18 }, // Accuracy
+      { wch: 10 }, // Time
+      { wch: 12 }  // Type
+    ];
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `quiz_results_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast.success('Data exported successfully');
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Quiz Results');
+
+    // Generate filename with current date and filters
+    let filename = 'quiz_results';
+    if (filters.startDate || filters.endDate) {
+      filename += '_filtered';
+    }
+    if (filters.userType !== 'all') {
+      filename += `_${filters.userType}`;
+    }
+    filename += `_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
+    toast.success('Quiz results exported successfully!');
   };
 
   return (
@@ -109,11 +173,12 @@ const AdminQuizResults = () => {
           <p className="text-gray-600">View and analyze all quiz attempts</p>
         </div>
         <button
-          onClick={exportToCSV}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+          onClick={exportToExcel}
+          disabled={attempts.length === 0}
+          className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition duration-200"
         >
           <FaDownload />
-          <span>Export CSV</span>
+          <span>Export to Excel</span>
         </button>
       </div>
 
@@ -223,6 +288,9 @@ const AdminQuizResults = () => {
               <tbody className="divide-y divide-gray-200">
                 {attempts.map((attempt, index) => {
                   const user = attempt.userType === 'guest' ? attempt.guestUser : attempt.user;
+                  const percentage = Number.isFinite(attempt.percentage)
+                    ? attempt.percentage
+                    : (attempt.totalQuestions ? (attempt.correctAnswers / attempt.totalQuestions) * 100 : 0);
                   return (
                     <tr key={attempt._id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4">
@@ -245,7 +313,10 @@ const AdminQuizResults = () => {
                             <span className="text-gray-500">| Age: {user?.age || 'N/A'}</span>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-500">Registered User</span>
+                          <div className="flex items-center space-x-2 text-sm">
+                            <FaPhone className="text-gray-400" />
+                            <span>{user?.mobile || 'N/A'}</span>
+                          </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -266,11 +337,11 @@ const AdminQuizResults = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          attempt.percentage >= 80 ? 'bg-green-100 text-green-800' :
-                          attempt.percentage >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                          percentage >= 80 ? 'bg-green-100 text-green-800' :
+                          percentage >= 50 ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
                         }`}>
-                          {attempt.correctAnswers}/{attempt.totalQuestions} ({attempt.percentage.toFixed(0)}%)
+                          {attempt.correctAnswers}/{attempt.totalQuestions} ({percentage.toFixed(0)}%)
                         </span>
                       </td>
                       <td className="px-6 py-4">

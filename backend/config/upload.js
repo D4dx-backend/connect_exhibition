@@ -158,12 +158,9 @@ const storage = new S3Storage({
   }
 });
 
-// Multer configuration
+// Multer configuration (no file size limit by default)
 const upload = multer({
   storage: storage,
-  limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760 // 10MB default
-  },
   fileFilter: fileFilter
 });
 

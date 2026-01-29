@@ -27,6 +27,16 @@ const Quiz = () => {
   const [quizConfig, setQuizConfig] = useState(null);
   const [quizAvailable, setQuizAvailable] = useState(true);
   const [availabilityMessage, setAvailabilityMessage] = useState('');
+  const [questionCount, setQuestionCount] = useState(0);
+
+  const sanitizeText = (value) => {
+    if (!value) return '';
+    const parsed = new DOMParser().parseFromString(String(value), 'text/html');
+    return (parsed.body.textContent || '')
+      .replace(/\u00a0/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
 
   useEffect(() => {
     fetchQuizConfig();
@@ -56,6 +66,7 @@ const Quiz = () => {
     try {
       const response = await quizAPI.getQuestions();
       setQuestions(response.data.data);
+      setQuestionCount(response.data.count || response.data.data?.length || 0);
       setQuizAvailable(true);
     } catch (error) {
       if (error.response?.status === 400) {
@@ -291,7 +302,7 @@ const Quiz = () => {
               <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 mb-6">
                 <h3 className="font-bold text-primary-900 mb-3">Quiz Rules:</h3>
                 <ul className="space-y-2 text-primary-800">
-                  <li>✓ 10 questions total (1 from each booth)</li>
+                  <li>✓ {questionCount || 10} questions total (1 from each booth)</li>
                   <li>✓ Each correct answer = 10 points</li>
                   <li>✓ Your time will be recorded</li>
                   <li>✓ Winners determined by highest score + fastest time</li>
@@ -349,12 +360,12 @@ const Quiz = () => {
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
         <div className="mb-4">
           <span className="inline-block px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">
-            {currentQuestion.boothName}
+            {sanitizeText(currentQuestion.boothName)}
           </span>
         </div>
 
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          {currentQuestion.question}
+          {sanitizeText(currentQuestion.question)}
         </h2>
 
         <div className="space-y-3">
@@ -381,7 +392,7 @@ const Quiz = () => {
                     {isSelected && <div className="w-2 h-2 bg-white rounded-full"></div>}
                   </div>
                   <span className={`text-lg ${isSelected ? 'font-semibold text-primary-900' : 'text-gray-700'}`}>
-                    {option.text}
+                    {sanitizeText(option.text)}
                   </span>
                 </div>
               </button>

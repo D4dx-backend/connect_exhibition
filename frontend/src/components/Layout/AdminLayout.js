@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   FaTachometerAlt, FaStore, FaQuestionCircle, 
   FaCommentAlt, FaBell, FaSignOutAlt, FaArrowLeft, 
-  FaClipboardList, FaCog, FaCalendarAlt, FaImages
+  FaClipboardList, FaCog, FaCalendarAlt, FaImages, FaUsers
 } from 'react-icons/fa';
 
 const AdminLayout = () => {
@@ -19,6 +19,7 @@ const AdminLayout = () => {
 
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: <FaTachometerAlt /> },
+    { path: '/admin/users', label: 'Users', icon: <FaUsers /> },
     { path: '/admin/booths', label: 'Booths', icon: <FaStore /> },
     { path: '/admin/gallery', label: 'Gallery', icon: <FaImages /> },
     { path: '/admin/programs', label: 'Programs', icon: <FaCalendarAlt /> },
