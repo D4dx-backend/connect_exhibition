@@ -17,7 +17,7 @@ const BoothList = () => {
       const response = await boothAPI.getAll({ search });
       setBooths(response.data.data);
     } catch (error) {
-      toast.error('Failed to load booths');
+      toast.error('Failed to load stalls');
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,7 @@ const BoothList = () => {
   const openLightbox = (imageUrl, altText) => {
     if (!imageUrl) return;
     setLightboxImage(imageUrl);
-    setLightboxAlt(altText || 'Booth image');
+    setLightboxAlt(altText || 'Stall image');
   };
 
   const closeLightbox = () => {
@@ -54,8 +54,8 @@ const BoothList = () => {
   return (
     <div className="fade-in">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Exhibition Booths</h1>
-        <p className="text-gray-600">Explore all exhibition booths and their details</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">Exhibition Stalls</h1>
+        <p className="text-gray-600">Explore all exhibition stalls and their details</p>
       </div>
 
       {/* Search Bar */}
@@ -67,7 +67,7 @@ const BoothList = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search booths..."
+              placeholder="Search stalls..."
               className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             />
           </div>
@@ -143,7 +143,7 @@ const BoothList = () => {
 
       {booths.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No booths found</p>
+          <p className="text-gray-500 text-lg">No stalls found</p>
         </div>
       )}
 

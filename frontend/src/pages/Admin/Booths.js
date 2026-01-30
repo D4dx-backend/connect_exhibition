@@ -66,7 +66,7 @@ const AdminBooths = () => {
       const response = await boothAPI.getAll();
       setBooths(response.data.data);
     } catch (error) {
-      toast.error('Failed to load booths');
+      toast.error('Failed to load stalls');
     } finally {
       setLoading(false);
     }
@@ -147,16 +147,16 @@ const AdminBooths = () => {
       
       if (editingBooth) {
         await boothAPI.update(editingBooth._id, boothData);
-        toast.success('Booth updated successfully');
+        toast.success('Stall updated successfully');
       } else {
         await boothAPI.create(boothData);
-        toast.success('Booth created successfully');
+        toast.success('Stall created successfully');
       }
       
       fetchBooths();
       closeModal();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save booth');
+      toast.error(error.response?.data?.message || 'Failed to save stall');
     } finally {
       setSubmitting(false);
     }
@@ -187,14 +187,14 @@ const AdminBooths = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this booth?')) return;
+    if (!window.confirm('Are you sure you want to delete this stall?')) return;
     
     try {
       await boothAPI.delete(id);
-      toast.success('Booth deleted successfully');
+      toast.success('Stall deleted successfully');
       fetchBooths();
     } catch (error) {
-      toast.error('Failed to delete booth');
+      toast.error('Failed to delete stall');
     }
   };
 
@@ -246,15 +246,15 @@ const AdminBooths = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Booths</h1>
-          <p className="text-gray-600">Create and manage exhibition booths</p>
+          <h1 className="text-2xl font-bold text-gray-800">Manage Stalls</h1>
+          <p className="text-gray-600">Create and manage exhibition stalls</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
         >
           <FaPlus />
-          <span>Add Booth</span>
+          <span>Add Stall</span>
         </button>
       </div>
 
@@ -325,7 +325,7 @@ const AdminBooths = () => {
 
         {booths.length === 0 && (
           <div className="text-center py-12 text-gray-500">
-            No booths found. Create your first booth!
+            No Stalls found. Create your first stall!
           </div>
         )}
       </div>
@@ -336,7 +336,7 @@ const AdminBooths = () => {
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-20">
               <h2 className="text-2xl font-bold text-gray-800">
-                {editingBooth ? 'Edit Booth' : 'Create New Booth'}
+                {editingBooth ? 'Edit Stall' : 'Create New Stall'}
               </h2>
               <button onClick={closeModal} className="text-gray-500 hover:text-gray-700" disabled={submitting}>
                 <FaTimes size={24} />
@@ -352,7 +352,7 @@ const AdminBooths = () => {
                   style={{ width: '250px', height: '250px' }}
                 />
                 <p className="mt-4 text-gray-700 font-medium text-lg">
-                  {editingBooth ? 'Updating booth...' : 'Creating booth...'}
+                  {editingBooth ? 'Updating stall...' : 'Creating stall...'}
                 </p>
               </div>
             )}
@@ -363,7 +363,7 @@ const AdminBooths = () => {
                 <h3 className="text-lg font-semibold text-gray-800">Basic Information</h3>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Booth Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Stall Name *</label>
                   <input
                     type="text"
                     value={formData.name}
@@ -742,7 +742,7 @@ const AdminBooths = () => {
                   className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting}
                 >
-                  {editingBooth ? 'Update Booth' : 'Create Booth'}
+                  {editingBooth ? 'Update Stall' : 'Create Stall'}
                 </button>
                 <button
                   type="button"

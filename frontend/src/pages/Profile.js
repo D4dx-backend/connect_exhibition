@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { quizAPI, authAPI } from '../services/apiServices';
 import { toast } from 'react-toastify';
 import { 
-  FaUser, FaEnvelope, FaBookmark, FaHistory, FaTrophy, 
+  FaUser, FaPhone, FaMapMarkerAlt, FaBookmark, FaHistory, FaTrophy, 
   FaClock, FaCheckCircle, FaEdit, FaKey 
 } from 'react-icons/fa';
 
@@ -16,7 +16,9 @@ const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    email: user?.email || ''
+    mobile: user?.mobile || '',
+    place: user?.place || '',
+    gender: user?.gender ?? true
   });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -133,9 +135,18 @@ const Profile = () => {
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{user?.name}</h1>
             <p className="text-primary-100 flex items-center">
-              <FaEnvelope className="mr-2" />
-              {user?.email}
+              <FaPhone className="mr-2" />
+              {user?.mobile || 'N/A'}
             </p>
+            <div className="mt-2 flex flex-wrap gap-3 text-sm text-primary-100">
+              <span className="inline-flex items-center">
+                <FaMapMarkerAlt className="mr-2" />
+                {user?.place || 'N/A'}
+              </span>
+              <span>
+                {user?.gender === true ? 'Male' : user?.gender === false ? 'Female' : 'N/A'}
+              </span>
+            </div>
             <div className="mt-2">
               <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                 user?.role === 'admin' ? 'bg-yellow-500 text-yellow-900' : 'bg-white text-primary-600'
@@ -206,8 +217,18 @@ const Profile = () => {
                       <p className="text-lg text-gray-800">{user?.name}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-600 font-medium">Email Address</label>
-                      <p className="text-lg text-gray-800">{user?.email}</p>
+                      <label className="text-sm text-gray-600 font-medium">Phone Number</label>
+                      <p className="text-lg text-gray-800">{user?.mobile || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-600 font-medium">Place</label>
+                      <p className="text-lg text-gray-800">{user?.place || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-600 font-medium">Gender</label>
+                      <p className="text-lg text-gray-800">
+                        {user?.gender === true ? 'Male' : user?.gender === false ? 'Female' : 'N/A'}
+                      </p>
                     </div>
                     <div>
                       <label className="text-sm text-gray-600 font-medium">Account Type</label>
@@ -304,15 +325,54 @@ const Profile = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
+                        Phone Number
                       </label>
                       <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        type="tel"
+                        value={formData.mobile}
+                        onChange={(e) => setFormData({...formData, mobile: e.target.value})}
                         required
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Place
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.place}
+                        onChange={(e) => setFormData({...formData, place: e.target.value})}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Gender
+                      </label>
+                      <div className="flex items-center gap-6">
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                          <input
+                            type="radio"
+                            name="gender"
+                            checked={formData.gender === true}
+                            onChange={() => setFormData({ ...formData, gender: true })}
+                            className="text-primary-600 focus:ring-primary-500"
+                          />
+                          Male
+                        </label>
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                          <input
+                            type="radio"
+                            name="gender"
+                            checked={formData.gender === false}
+                            onChange={() => setFormData({ ...formData, gender: false })}
+                            className="text-primary-600 focus:ring-primary-500"
+                          />
+                          Female
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <div className="flex space-x-3">

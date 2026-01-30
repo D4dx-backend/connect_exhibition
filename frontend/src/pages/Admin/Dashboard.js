@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { FaCalendarAlt, FaChartBar, FaClock, FaEnvelope, FaPhone, FaTrophy, FaUser } from 'react-icons/fa';
+import { FaCalendarAlt, FaChartBar, FaClock, FaPhone, FaTrophy, FaUser } from 'react-icons/fa';
 import { userAPI } from '../../services/apiServices';
 
 const Dashboard = () => {
@@ -95,10 +95,6 @@ const Dashboard = () => {
                       <div>
                         <p className="font-semibold text-gray-800">{user.name || 'N/A'}</p>
                         <div className="flex items-center text-sm text-gray-500 space-x-3 mt-1">
-                          <span className="inline-flex items-center">
-                            <FaEnvelope className="mr-2 text-gray-400" />
-                            {user.email || 'N/A'}
-                          </span>
                           <span className="inline-flex items-center">
                             <FaPhone className="mr-2 text-gray-400" />
                             {user.mobile || 'N/A'}

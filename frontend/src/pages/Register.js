@@ -7,9 +7,8 @@ const Register = () => {
     name: '',
     mobile: '',
     place: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    gender: true,
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,12 +31,6 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters');
       return;
@@ -45,8 +38,7 @@ const Register = () => {
 
     setLoading(true);
 
-    const { confirmPassword, ...registerData } = formData;
-    const result = await register(registerData);
+    const result = await register(formData);
     setLoading(false);
 
     if (result.success) {
@@ -116,17 +108,30 @@ const Register = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              Gender
             </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Enter your email"
-            />
+            <div className="flex items-center gap-6">
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="radio"
+                  name="gender"
+                  checked={formData.gender === true}
+                  onChange={() => setFormData({ ...formData, gender: true })}
+                  className="text-primary-600 focus:ring-primary-500"
+                />
+                Male
+              </label>
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="radio"
+                  name="gender"
+                  checked={formData.gender === false}
+                  onChange={() => setFormData({ ...formData, gender: false })}
+                  className="text-primary-600 focus:ring-primary-500"
+                />
+                Female
+              </label>
+            </div>
           </div>
 
           <div>
@@ -142,21 +147,6 @@ const Register = () => {
               minLength="8"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Create a password (min 8 characters)"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Confirm your password"
             />
           </div>
 
