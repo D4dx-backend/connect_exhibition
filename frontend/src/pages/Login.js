@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -44,16 +44,16 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              Email or Phone
             </label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="identifier"
+              value={formData.identifier}
               onChange={handleChange}
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Enter your email"
+              placeholder="Enter your email or phone number"
             />
           </div>
 

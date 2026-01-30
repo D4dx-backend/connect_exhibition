@@ -5,7 +5,6 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaDownload,
-  FaEnvelope,
   FaMapMarkerAlt,
   FaPhone,
   FaSearch,
@@ -107,9 +106,9 @@ const AdminUsers = () => {
 
       const exportData = allUsers.map((user) => ({
         Name: user.name || 'N/A',
-        Email: user.email || 'N/A',
-        Mobile: user.mobile || 'N/A',
+        Phone: user.mobile || 'N/A',
         Place: user.place || 'N/A',
+        Gender: user.gender === true ? 'Male' : user.gender === false ? 'Female' : 'N/A',
         Role: user.role || 'user',
         Status: user.isActive ? 'Active' : 'Inactive',
         Joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN') : 'N/A',
@@ -119,9 +118,9 @@ const AdminUsers = () => {
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       worksheet['!cols'] = [
         { wch: 20 },
-        { wch: 28 },
-        { wch: 15 },
         { wch: 18 },
+        { wch: 18 },
+        { wch: 12 },
         { wch: 10 },
         { wch: 12 },
         { wch: 14 },
@@ -167,7 +166,7 @@ const AdminUsers = () => {
             </label>
             <input
               type="text"
-              placeholder="Search name, email, mobile, place..."
+              placeholder="Search name, phone, place..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
@@ -215,8 +214,9 @@ const AdminUsers = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">User</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Contact</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Phone</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Location</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Gender</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Role</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Status</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Joined</th>
@@ -233,10 +233,6 @@ const AdminUsers = () => {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-800">{user.name || 'N/A'}</p>
-                          <p className="text-sm text-gray-500 flex items-center">
-                            <FaEnvelope className="mr-2 text-gray-400" />
-                            {user.email || 'N/A'}
-                          </p>
                         </div>
                       </div>
                     </td>
@@ -251,6 +247,9 @@ const AdminUsers = () => {
                         <FaMapMarkerAlt className="text-gray-400" />
                         <span>{user.place || '-'}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {user.gender === true ? 'Male' : user.gender === false ? 'Female' : '—'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${

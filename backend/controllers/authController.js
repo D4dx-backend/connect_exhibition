@@ -13,24 +13,24 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, mobile, place } = req.body;
+    const { name, password, mobile, place, gender } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ mobile });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email'
+        message: 'User already exists with this phone number'
       });
     }
 
     // Create user
     const user = await User.create({
       name,
-      email,
       password,
       mobile,
-      place
+      place,
+      gender
     });
 
     // Generate token
@@ -53,18 +53,23 @@ exports.register = async (req, res, next) => {
 // @access  Public
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, mobile, password, identifier } = req.body;
+    const loginIdentifier = (identifier || email || mobile || '').trim();
 
     // Validate email & password
-    if (!email || !password) {
+    if (!loginIdentifier || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password'
+        message: 'Please provide email or phone and password'
       });
     }
 
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const isEmailLogin = loginIdentifier.includes('@') || !!email;
+    const query = isEmailLogin
+      ? { email: loginIdentifier.toLowerCase() }
+      : { mobile: loginIdentifier };
+    const user = await User.findOne(query).select('+password');
 
     if (!user) {
       return res.status(401).json({
@@ -125,11 +130,11 @@ exports.getMe = async (req, res, next) => {
 // @access  Private
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, email, mobile, place } = req.body;
+    const { name, mobile, place, gender } = req.body;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, email, mobile, place },
+      { name, mobile, place, gender },
       { new: true, runValidators: true }
     );
 

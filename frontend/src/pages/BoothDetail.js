@@ -31,7 +31,7 @@ const BoothDetail = () => {
       const booths = response.data.data || [];
       setAllBooths(booths);
     } catch (error) {
-      console.error('Failed to load booths list');
+      console.error('Failed to load stalls list');
     }
   }, []);
 
@@ -46,7 +46,7 @@ const BoothDetail = () => {
       const index = allBooths.findIndex(b => b._id === id);
       setCurrentIndex(index);
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to load booth details';
+      const message = error.response?.data?.message || 'Failed to load stall details';
       toast.error(message);
       navigate('/booths');
     } finally {
@@ -85,7 +85,7 @@ const BoothDetail = () => {
 
   const handleBookmark = async () => {
     if (!isAuthenticated) {
-      toast.info('Please login to bookmark booths');
+      toast.info('Please login to bookmark stalls');
       navigate('/login');
       return;
     }
@@ -93,7 +93,7 @@ const BoothDetail = () => {
     try {
       const response = await boothAPI.toggleBookmark(id);
       setIsBookmarked(response.data.bookmarked);
-      toast.success(response.data.bookmarked ? 'Booth bookmarked!' : 'Bookmark removed');
+      toast.success(response.data.bookmarked ? 'Stall bookmarked!' : 'Bookmark removed');
     } catch (error) {
       toast.error('Failed to update bookmark');
     }
@@ -442,7 +442,7 @@ const BoothDetail = () => {
           className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition"
         >
           <FaArrowLeft />
-          <span>Back to Booths</span>
+          <span>Back to Stalls</span>
         </button>
 
         <div className="flex items-center space-x-4">
@@ -479,12 +479,12 @@ const BoothDetail = () => {
           }`}
         >
           <FaArrowLeft />
-          <span>Previous Booth</span>
+          <span>Previous Stall</span>
         </button>
 
         <div className="text-center">
           <span className="text-sm text-gray-600">
-            Booth {currentIndex + 1} of {allBooths.length}
+            Stall {currentIndex + 1} of {allBooths.length}
           </span>
         </div>
 
@@ -497,7 +497,7 @@ const BoothDetail = () => {
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          <span>Next Booth</span>
+          <span>Next Stall</span>
           <FaArrowRight />
         </button>
       </div>
@@ -766,7 +766,7 @@ const BoothDetail = () => {
           }`}
         >
           <FaArrowLeft />
-          <span>Previous Booth</span>
+          <span>Previous Stall</span>
         </button>
 
         <div className="text-center">
@@ -784,7 +784,7 @@ const BoothDetail = () => {
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          <span>Next Booth</span>
+          <span>Next Stall</span>
           <FaArrowRight />
         </button>
       </div>

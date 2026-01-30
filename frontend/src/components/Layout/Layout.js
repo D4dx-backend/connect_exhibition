@@ -22,7 +22,7 @@ const Layout = () => {
 
   const navItems = [
     { path: '/home', label: 'Home', icon: <FaHome /> },
-    { path: '/booths', label: 'Booths', icon: <FaStore /> },
+    { path: '/booths', label: 'Stalls', icon: <FaStore /> },
     { path: '/quiz', label: 'Quiz', icon: <FaQuestionCircle /> },
     { path: '/programs', label: 'Programs', icon: <FaCalendarAlt /> },
     { path: '/leaderboard', label: 'Leaderboard', icon: <FaTrophy /> },

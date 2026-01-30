@@ -20,7 +20,7 @@ const AdminLayout = () => {
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: <FaTachometerAlt /> },
     { path: '/admin/users', label: 'Users', icon: <FaUsers /> },
-    { path: '/admin/booths', label: 'Booths', icon: <FaStore /> },
+    { path: '/admin/booths', label: 'Stalls', icon: <FaStore /> },
     { path: '/admin/gallery', label: 'Gallery', icon: <FaImages /> },
     { path: '/admin/programs', label: 'Programs', icon: <FaCalendarAlt /> },
     { path: '/admin/questions', label: 'Questions', icon: <FaQuestionCircle /> },

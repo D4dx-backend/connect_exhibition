@@ -32,7 +32,6 @@ exports.getUsers = async (req, res, next) => {
       const regex = new RegExp(search, 'i');
       query.$or = [
         { name: regex },
-        { email: regex },
         { mobile: regex },
         { place: regex }
       ];
@@ -44,7 +43,7 @@ exports.getUsers = async (req, res, next) => {
 
     const [users, total] = await Promise.all([
       User.find(query)
-        .select('name email mobile place role isActive createdAt lastLogin')
+        .select('name mobile place gender role isActive createdAt lastLogin')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parsedLimit),
@@ -88,14 +87,14 @@ exports.getAdminOverview = async (req, res, next) => {
     ]);
 
     const recentUsers = await User.find({ role: 'user' })
-      .select('name email mobile place createdAt lastLogin isActive')
+      .select('name mobile place gender createdAt lastLogin isActive')
       .sort({ createdAt: -1 })
       .limit(5);
 
     const recentQuizAttempts = await QuizAttempt.find()
       .sort({ attemptDate: -1 })
       .limit(5)
-      .populate('user', 'name email mobile')
+      .populate('user', 'name mobile')
       .populate('guestUser', 'name mobile place age');
 
     res.status(200).json({

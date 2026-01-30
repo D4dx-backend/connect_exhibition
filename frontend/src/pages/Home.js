@@ -23,7 +23,7 @@ const Home = () => {
       const response = await boothAPI.getAll();
       setBooths(response.data.data || []);
     } catch (error) {
-      console.error('Failed to load booths');
+      console.error('Failed to load stalls');
     }
   };
 
@@ -86,8 +86,8 @@ const Home = () => {
   const features = [
     {
       icon: <FaStore className="text-xl sm:text-2xl" />,
-      title: 'Exhibition Booths',
-      description: 'Explore various exhibition booths',
+      title: 'Exhibition Stalls',
+      description: 'Explore various exhibition stalls',
       link: '/booths',
       iconBg: 'bg-blue-500'
     },
@@ -289,7 +289,7 @@ const Home = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary-600 mb-1">{booths.length}</div>
-            <div className="text-gray-600 text-xs">Booths</div>
+            <div className="text-gray-600 text-xs">Stalls</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600 mb-1">100+</div>
